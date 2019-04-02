@@ -1,0 +1,192 @@
+源代码
+1.高斯噪声
+function gaussian_noise(imgpath)
+[I,map]=imread(imgpath);
+A=ind2gray(I,map);
+m=0.1;  %均值
+var=0.004;  %方差
+B=imnoise(A,'gaussian',m,var);  %加入高斯噪声后的图像
+[m,n]=size(B);
+expand_size=2;  %扩展大小
+B_expand=wextend('2D','sym',B,expand_size);  %扩展后的带有高斯噪声的图像
+[M,N]=size(B_expand);%得到扩展后的图像大小
+L=double(B_expand);
+g_weight_arithmetic=double(zeros(m,n));
+g_weight_geometric=double(zeros(m,n));
+g_harmonic_mean=double(zeros(m,n));
+g_inverse_harmonic_mean=double(zeros(m,n));
+g_mean_value=double(zeros(m,n));
+Q=1;  %逆谐波均值滤波器阶数
+for i=expand_size+1:M-expand_size       
+    for j=expand_size+1:N-expand_size  %从x(expand_size+1,expand_size+1)开始
+      m=L(i-expand_size:i+expand_size,j-expand_size:j+expand_size);  %取2*expand_size+1邻域
+      %********************************************************************%
+      g_weight_arithmetic(i-expand_size,j-expand_size)=mean2(m);  %算术均值滤波
+      %********************************************************************%
+      h=1;  %几何均值滤波
+      for p=1:2*expand_size+1
+          for q=1:2*expand_size+1
+              h=h*m(p,q);
+          end
+      end
+      g_weight_geometric(i-expand_size,j-expand_size)=h^(1/(2*expand_size+1)^2);  %几何均值
+      %********************************************************************%
+      m_backwords=1./m;  %谐波均值滤波
+      g_harmonic_mean(i-expand_size,j-expand_size)=((2*expand_size+1)^2)/(sum(m_backwords(:)));
+      %********************************************************************%
+      m_Q=m.^Q;  %逆谐波均值滤波
+      m_Qsumone=m.^(Q+1);
+      g_inverse_harmonic_mean(i-expand_size,j-expand_size)=sum(m_Qsumone(:))/sum(m_Q(:));
+      %********************************************************************%
+      g_mean_value(i-expand_size,j-expand_size)=median(m(:));  %中值滤波
+      %********************************************************************%
+    end
+end
+g_weight_arithmetic=uint8(g_weight_arithmetic);  %算术均值滤波
+g_weight_geometric=uint8(g_weight_geometric);  %几何均值滤波
+g_harmonic_mean=uint8(g_harmonic_mean);  %谐波均值滤波
+g_inverse_harmonic_mean=uint8(g_inverse_harmonic_mean);  %逆谐波均值滤波
+g_mean_value=uint8(g_mean_value);  %  中值滤波
+figure(1);
+subplot(1,2,1),imshow(A);title('原图');
+subplot(1,2,2),imshow(B);title('加入高斯噪声');
+figure(2);
+imshow(g_weight_arithmetic);title('算术均值滤波');
+figure(3);
+imshow(g_weight_geometric);title('几何均值滤波');
+figure(4);
+imshow(g_harmonic_mean);title('谐波均值滤波');
+figure(5);
+imshow(g_inverse_harmonic_mean);title('逆谐波均值滤波');
+figure(6);
+imshow(g_mean_value);title('中值滤波');
+end
+
+
+2.椒盐噪声
+function salt_pepper_noise(imgpath)
+[I,map]=imread(imgpath);
+A=ind2gray(I,map);
+B=imnoise(A,'salt & pepper',0.1);  %加入椒盐噪声后的图像,密度为0.1
+[m,n]=size(B);
+expand_size=2;  %扩展大小
+B_expand=wextend('2D','sym',B,expand_size);  %扩展后的带有椒盐噪声的图像
+[M,N]=size(B_expand);%得到扩展后的图像大小
+L=double(B_expand);
+g_weight_arithmetic=double(zeros(m,n));
+g_weight_geometric=double(zeros(m,n));
+g_harmonic_mean=double(zeros(m,n));
+g_inverse_harmonic_mean=double(zeros(m,n));
+g_mean_value=double(zeros(m,n));
+Q=-0.5;  %逆谐波均值滤波器阶数
+for i=expand_size+1:M-expand_size       
+    for j=expand_size+1:N-expand_size  %从x(expand_size+1,expand_size+1)开始
+      m=L(i-expand_size:i+expand_size,j-expand_size:j+expand_size);  %取2*expand_size+1邻域
+      %********************************************************************%
+      g_weight_arithmetic(i-expand_size,j-expand_size)=mean2(m);  %算术均值滤波
+      %********************************************************************%
+      h=1;  %几何均值滤波
+      for p=1:2*expand_size+1
+          for q=1:2*expand_size+1
+              h=h*m(p,q);
+          end
+      end
+      g_weight_geometric(i-expand_size,j-expand_size)=h^(1/(2*expand_size+1)^2);  %几何均值
+      %********************************************************************%
+      m_backwords=1./m;  %谐波均值滤波
+      g_harmonic_mean(i-expand_size,j-expand_size)=((2*expand_size+1)^2)/(sum(m_backwords(:)));
+      %********************************************************************%
+      m_Q=m.^Q;  %逆谐波均值滤波
+      m_Qsumone=m.^(Q+1);
+      g_inverse_harmonic_mean(i-expand_size,j-expand_size)=sum(m_Qsumone(:))/sum(m_Q(:));
+      %********************************************************************%
+      g_mean_value(i-expand_size,j-expand_size)=median(m(:));  %中值滤波
+      %********************************************************************%
+    end
+end
+g_weight_arithmetic=uint8(g_weight_arithmetic);  %算术均值滤波
+g_weight_geometric=uint8(g_weight_geometric);  %几何均值滤波
+g_harmonic_mean=uint8(g_harmonic_mean);  %谐波均值滤波
+g_inverse_harmonic_mean=uint8(g_inverse_harmonic_mean);  %逆谐波均值滤波
+g_mean_value=uint8(g_mean_value);  %  中值滤波
+figure(1);
+subplot(1,2,1),imshow(A);title('原图');
+subplot(1,2,2),imshow(B);title('加入椒盐噪声');
+figure(2);
+imshow(g_weight_arithmetic);title('算术均值滤波');
+figure(3);
+imshow(g_weight_geometric);title('几何均值滤波');
+figure(4);
+imshow(g_harmonic_mean);title('谐波均值滤波');
+figure(5);
+imshow(g_inverse_harmonic_mean);title('逆谐波均值滤波(Q=-0.5)');
+figure(6);
+imshow(g_mean_value);title('中值滤波');
+end
+
+
+3.维纳滤波-约束最小二乘方滤波
+function wiener(imgpath)
+[I,map]=imread(imgpath);
+A=ind2gray(I,map);
+b=double(A);
+B=fft2(b);
+B=fftshift(B);
+[x,y]=size(B);
+T=1;
+a=0.1;
+b=0.1;
+m=0;  %均值
+var=0.01;  %方差
+for u=1:x
+    for v=1:y
+        H(u,v)=(T/(pi*(u*a+v*b)))*sin(pi*(u*a+v*b))*exp(-sqrt(-1)*pi*(u*a+v*b));
+        G(u,v)=H(u,v)*B(u,v);
+    end
+end
+g=ifftshift(G);
+g=ifft2(g);
+g=256.*g./max(max(g));
+g=uint8(real(g));
+g_noise=imnoise(g,'gaussian',m,var);  %加入高斯噪声后的模糊图像
+g_n=double(g_noise);
+G_n=fft2(g_n);
+G_n=fftshift(G_n);
+[x,y]=size(G_n);
+K=0.03;
+r=4*10^(-8);
+p=[0 -1 0;-1 4 -1;0 -1 0];
+P=psf2otf(p,[x,y]);
+%P=fft2(p);
+%P=fftshift(P);
+for u=1:x
+    for v=1:y
+        H(u,v)=(T/(pi*(u*a+v*b)))*sin(pi*(u*a+v*b))*exp(-sqrt(-1)*pi*(u*a+v*b));
+        F_wiener(u,v)=((1/H(u,v))*(abs(H(u,v)))^2/((abs(H(u,v)))^2+K))*G_n(u,v);
+        F_Constrained_Least_Squares(u,v)=(conj(H(u,v))/(abs(H(u,v))^2+r*abs(P(u,v)^2)))*G_n(u,v);
+    end
+end
+f_wiener=ifftshift(F_wiener);
+f_wiener=ifft2(f_wiener);
+f_wiener=256.*f_wiener./max(max(f_wiener));
+f_wiener=uint8(real(f_wiener));  %使用维纳滤波器恢复的图像
+f_Constrained_Least_Squares=ifftshift(F_Constrained_Least_Squares);
+f_Constrained_Least_Squares=ifft2(f_Constrained_Least_Squares);
+f_Constrained_Least_Squares=256.*f_Constrained_Least_Squares./max(max(f_Constrained_Least_Squares));
+f_Constrained_Least_Squares=uint8(real(f_Constrained_Least_Squares));  %使用约束最小二乘方滤波恢复的图像
+%****************************************************************************%
+[j,noise]=wiener2(g_noise,[5,5]);  %matlab版维纳滤波
+%****************************************************************************%
+figure(1);
+imshow(A);title('原图');
+figure(2);
+imshow(g);title('模糊图像');
+figure(3);
+imshow(g_noise);title('加入高斯噪声的模糊图像');
+figure(4);
+imshow(f_wiener);title('维纳滤波器恢复图像');
+figure(5);
+imshow(f_Constrained_Least_Squares);title('约束最小二乘方滤波恢复的图像');
+figure(6);
+imshow(j);title('matlab版-维纳滤波器恢复图像');
+end
